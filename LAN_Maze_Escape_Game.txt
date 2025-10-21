@@ -1,0 +1,42 @@
+LAN Maze Escape Game
+This is a console-based, multiplayer LAN game built in Java. Players connect to a server, navigate a maze, and try to find the exit.
+
+Core Concepts
+Client-Server Architecture: The server manages the game state and client connections, while each client handles player input and renders the game on the console.
+
+Object-Oriented Programming (OOP): The project uses separate classes for the Server, Client, Maze, and Player to demonstrate principles like encapsulation and modularity.
+
+Networking: Communication is handled using Java Sockets and multithreading to allow for real-time updates.
+
+How to Run
+Compile the files:
+Open your terminal or command prompt, navigate to the directory where these files are saved, and run the following command:
+
+javac *.java
+
+Run the Server:
+In your terminal, start the server application. The server will wait for clients to connect.
+
+java Server
+
+Run the Clients:
+Open a new terminal window for each player and start the client application. The clients will attempt to connect to the server running on localhost.
+
+java Client
+
+You can run this command multiple times to have multiple players.
+
+How to Play
+Once a client connects, it will prompt you for a player name. The game is displayed on the console.
+
+Use the commands up, down, left, right to move.
+
+The player is represented by a P on the maze.
+
+The exit is represented by an E.
+
+Walls are represented by #.
+
+Empty space is represented by a      .
+
+The game ends for a player when they successfully find the exit. The server will broadcast this win to all other players.
