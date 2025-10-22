@@ -20,10 +20,10 @@ public class Server {
     private static final int PORT = 12345;
     private static final int MAZE_WIDTH = 21;
     private static final int MAZE_HEIGHT = 11;
-    private static final Maze maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
+    private static volatile Maze maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
     private static final Map<String, Player> players = new ConcurrentHashMap<>();
     private static final Map<String, ObjectOutputStream> clientOutputs = new ConcurrentHashMap<>();
-    private static final ExecutorService pool = Executors.newFixedThreadPool(4);
+    private static final ExecutorService pool = Executors.newCachedThreadPool();
 
     public static void main(String[] args) throws IOException {
         System.out.println("Server started. Waiting for clients on port " + PORT + "...");
@@ -67,7 +67,7 @@ public class Server {
      */
     private static void triggerEarthquake() {
         System.out.println("Earthquake! The maze is shifting...");
-        maze.generateMaze();
+        maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
         broadcastGameState();
     }
     
@@ -112,22 +112,34 @@ public class Server {
                 System.out.println("Player " + playerName + " connected.");
                 broadcastGameState();
 
-                while (true) {
+                // Keep connection alive and listen for commands
+                while (!socket.isClosed()) {
                     try {
                         String command = (String) in.readObject();
                         processCommand(command);
                         broadcastGameState();
                     } catch (ClassNotFoundException e) {
                         System.err.println("Invalid object received: " + e.getMessage());
+                        break; // Exit loop on invalid data
+                    } catch (IOException e) {
+                        // Connection closed by client
+                        break;
                     }
                 }
 
             } catch (IOException e) {
                 System.err.println("Player " + playerId + " disconnected: " + e.getMessage());
             } finally {
+                // Clean up resources
                 players.remove(playerId);
                 clientOutputs.remove(playerId);
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
                 broadcastGameState();
+                System.out.println("Player " + playerId + " cleanup completed.");
             }
         }
 

@@ -31,7 +31,7 @@ public class MazeRunnerSwingClient extends JFrame {
 
     private JPanel gameScreenPanel;
     private MazePanel mazePanel;
-    private JPanel statsPanel;
+    private JPanel statsPanel;l
     private JLabel statusLabel;
 
     private int cellSize;
@@ -240,7 +240,7 @@ public class MazeRunnerSwingClient extends JFrame {
         gameScreenPanel.add(statusLabel, BorderLayout.SOUTH);
 
         mazePanel = new MazePanel();
-        gameScreenPanel.add(new JScrollPane(mazePanel), BorderLayout.CENTER);
+        gameScreenPanel.add(mazePanel, BorderLayout.CENTER);
     }
 
     private void startNewGame() {
@@ -623,7 +623,13 @@ public class MazeRunnerSwingClient extends JFrame {
             int mazeWidth = currentMaze.getWidth();
             int mazeHeight = currentMaze.getHeight();
 
-            Dimension dim = new Dimension(mazeWidth * cellSize, mazeHeight * cellSize);
+            // Calculate cellSize to fill the entire panel
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
+            int dynamicCellSize = Math.min(panelWidth / mazeWidth, panelHeight / mazeHeight);
+            if (dynamicCellSize < 1) dynamicCellSize = 1; // Minimum size
+
+            Dimension dim = new Dimension(mazeWidth * dynamicCellSize, mazeHeight * dynamicCellSize);
             if (!dim.equals(getPreferredSize())) {
                 setPreferredSize(dim);
                 revalidate();
@@ -632,29 +638,29 @@ public class MazeRunnerSwingClient extends JFrame {
             for (int y = 0; y < mazeHeight; y++) {
                 for (int x = 0; x < mazeWidth; x++) {
                     if (currentMaze.isWall(x, y))
-                        wallIcon.paintIcon(this, g, x * cellSize, y * cellSize);
+                        wallIcon.paintIcon(this, g, x * dynamicCellSize, y * dynamicCellSize);
                     else
-                        pathIcon.paintIcon(this, g, x * cellSize, y * cellSize);
+                        pathIcon.paintIcon(this, g, x * dynamicCellSize, y * dynamicCellSize);
                 }
             }
 
             Position exitPos = currentMaze.getExitPosition();
-            portalIcon.paintIcon(this, g, exitPos.x() * cellSize, exitPos.y() * cellSize);
+            portalIcon.paintIcon(this, g, exitPos.x() * dynamicCellSize, exitPos.y() * dynamicCellSize);
 
             for (Position coinPos : new ArrayList<>(coinPositions)) {
-                coinIcon.paintIcon(this, g, coinPos.x() * cellSize, coinPos.y() * cellSize);
+                coinIcon.paintIcon(this, g, coinPos.x() * dynamicCellSize, coinPos.y() * dynamicCellSize);
             }
 
             // Draw coin bag
             if (coinBagPos != null) {
                 if (coinBagIcon != null && coinBagIcon.getIconWidth() > 0) {
-                    coinBagIcon.paintIcon(this, g, coinBagPos.x() * cellSize, coinBagPos.y() * cellSize);
+                    coinBagIcon.paintIcon(this, g, coinBagPos.x() * dynamicCellSize, coinBagPos.y() * dynamicCellSize);
                 } else {
                     // Fallback: draw a colored rectangle if image fails to load
                     g.setColor(Color.YELLOW);
-                    g.fillRect(coinBagPos.x() * cellSize, coinBagPos.y() * cellSize, cellSize, cellSize);
+                    g.fillRect(coinBagPos.x() * dynamicCellSize, coinBagPos.y() * dynamicCellSize, dynamicCellSize, dynamicCellSize);
                     g.setColor(Color.BLACK);
-                    g.drawString("$", coinBagPos.x() * cellSize + cellSize/2 - 4, coinBagPos.y() * cellSize + cellSize/2 + 4);
+                    g.drawString("$", coinBagPos.x() * dynamicCellSize + dynamicCellSize/2 - 4, coinBagPos.y() * dynamicCellSize + dynamicCellSize/2 + 4);
                 }
             }
 
@@ -664,24 +670,24 @@ public class MazeRunnerSwingClient extends JFrame {
                 ImageIcon tempIcon = new ImageIcon("time_icon.png");
                 if (tempIcon != null && tempIcon.getIconWidth() > 0) {
                     // Scale it to cell size
-                    Image scaled = tempIcon.getImage().getScaledInstance(cellSize, cellSize, Image.SCALE_SMOOTH);
+                    Image scaled = tempIcon.getImage().getScaledInstance(dynamicCellSize, dynamicCellSize, Image.SCALE_SMOOTH);
                     ImageIcon scaledIcon = new ImageIcon(scaled);
-                    scaledIcon.paintIcon(this, g, timeBonusPos.x() * cellSize, timeBonusPos.y() * cellSize);
+                    scaledIcon.paintIcon(this, g, timeBonusPos.x() * dynamicCellSize, timeBonusPos.y() * dynamicCellSize);
                 } else {
                     // Fallback: draw a colored rectangle if image fails to load
                     g.setColor(Color.BLUE);
-                    g.fillRect(timeBonusPos.x() * cellSize, timeBonusPos.y() * cellSize, cellSize, cellSize);
+                    g.fillRect(timeBonusPos.x() * dynamicCellSize, timeBonusPos.y() * dynamicCellSize, dynamicCellSize, dynamicCellSize);
                     g.setColor(Color.WHITE);
-                    g.drawString("T", timeBonusPos.x() * cellSize + cellSize/2 - 4, timeBonusPos.y() * cellSize + cellSize/2 + 4);
+                    g.drawString("T", timeBonusPos.x() * dynamicCellSize + dynamicCellSize/2 - 4, timeBonusPos.y() * dynamicCellSize + dynamicCellSize/2 + 4);
                 }
             }
 
             for (Player p : players.values()) {
                 Position pos = p.getPosition();
                 if (p.getId().equals(myPlayerId))
-                    marioIcons[lastDir].paintIcon(this, g, pos.x() * cellSize, pos.y() * cellSize);
+                    marioIcons[lastDir].paintIcon(this, g, pos.x() * dynamicCellSize, pos.y() * dynamicCellSize);
                 else
-                    playerIconDefault.paintIcon(this, g, pos.x() * cellSize, pos.y() * cellSize);
+                    playerIconDefault.paintIcon(this, g, pos.x() * dynamicCellSize, pos.y() * dynamicCellSize);
             }
         }
     }
