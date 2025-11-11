@@ -35,26 +35,38 @@ A multiplayer LAN maze escape game built in Java with both console and GUI versi
 javac *.java
 ```
 
+### Finding Your IP Address
+To play across multiple machines on the same LAN, you need the server's IP address.
+
+On Windows, open Command Prompt and run:
+```bash
+ipconfig
+```
+Look for the "IPv4 Address" under your active network adapter (usually Wi-Fi or Ethernet).
+
 ### Start the Server
+Run on one machine (the host):
 ```bash
 java Server
 ```
-The server will listen on port 12345 and display connection messages.
+The server will display its IP address and listen on port 12345 for connections.
 
 ### Start Clients
-Open separate terminals for each player:
+Run on other machines or the same machine for testing. Open separate terminals for each player.
 
 **Console Version:**
 ```bash
-java Client
+java Client <server_ip> <player_name>
 ```
+Or run `java Client` and enter the server IP and player name when prompted.
 
 **GUI Version:**
 ```bash
-java MazeRunnerSwingClient
+java MazeRunnerSwingClient <server_ip>
 ```
+Or run `java MazeRunnerSwingClient` and enter the server IP when prompted. Enter your player name in the game.
 
-Enter your player name when prompted and use arrow keys to navigate.
+Use arrow keys to navigate the maze.
 
 ## Game Controls
 
