@@ -14,7 +14,7 @@ public class MazeRunnerSwingClient extends JFrame {
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
-    private static final String SERVER_ADDRESS = "localhost";
+    private static String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
 
     // Difficulty settings
@@ -31,7 +31,7 @@ public class MazeRunnerSwingClient extends JFrame {
 
     private JPanel gameScreenPanel;
     private MazePanel mazePanel;
-    private JPanel statsPanel;l
+    private JPanel statsPanel;
     private JLabel statusLabel;
 
     private int cellSize;
@@ -693,6 +693,14 @@ public class MazeRunnerSwingClient extends JFrame {
     }
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            SERVER_ADDRESS = args[0];
+        } else {
+            String ip = JOptionPane.showInputDialog(null, "Server IP (e.g. 192.168.31.191):", "Connect to Server", JOptionPane.QUESTION_MESSAGE);
+            if (ip != null && !ip.trim().isEmpty()) {
+                SERVER_ADDRESS = ip.trim();
+            }
+        }
         SwingUtilities.invokeLater(() -> {
             MazeRunnerSwingClient client = new MazeRunnerSwingClient();
             client.setVisible(true);

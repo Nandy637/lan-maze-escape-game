@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Scanner;
@@ -17,14 +18,28 @@ public class Client {
     private static Maze currentMaze;
 
     public static void main(String[] args) {
-        System.out.print("Enter your player name: ");
-        String playerName = consoleScanner.nextLine();
+        Scanner sc = new Scanner(System.in);
+        String serverIP = args.length > 0 ? args[0] : "";
+        final String playerName;
 
-       try (Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-           // Deadlock fix: Create ObjectOutputStream BEFORE ObjectInputStream
-           ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-           ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
+        if (serverIP.isEmpty()) {
+            System.out.print("Enter server IP (e.g. 192.168.31.191): ");
+            serverIP = sc.nextLine().trim();
+        }
+
+        if (args.length > 1) {
+            playerName = args[1];
+        } else {
+            System.out.print("Enter your player name: ");
+            playerName = sc.nextLine().trim();
+        }
+
+        try (Socket socket = new Socket(serverIP, SERVER_PORT);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+            System.out.println("Connected to " + serverIP + ":" + SERVER_PORT);
+
             // Send player name to the server and ensure it's flushed immediately
             out.writeObject(playerName);
             out.flush(); // Flush after every writeObject to avoid network delays
@@ -47,8 +62,11 @@ public class Client {
                 out.writeObject(command);
                 out.flush(); // Flush after every command for real-time updates
             }
-        } catch (IOException e) {
-            System.err.println("Could not connect to server: " + e.getMessage());
+        } catch (ConnectException ce) {
+            System.err.println("Could not connect to " + serverIP + ":" + SERVER_PORT + "  -> " + ce.getMessage());
+            System.err.println("Check server IP, server running, same Wi-Fi, and firewall.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.BindException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
@@ -25,22 +27,46 @@ public class Server {
     private static final Map<String, ObjectOutputStream> clientOutputs = new ConcurrentHashMap<>();
     private static final ExecutorService pool = Executors.newCachedThreadPool();
 
-    public static void main(String[] args) throws IOException {
-        System.out.println("Server started. Waiting for clients on port " + PORT + "...");
-
-        // Start earthquake timer (every 30 seconds)
-        Timer earthquakeTimer = new Timer();
-        earthquakeTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                triggerEarthquake();
+    public static void main(String[] args) {
+        try {
+            String bindIP = args.length > 0 ? args[0] : "0.0.0.0";
+            ServerSocket serverSocket;
+            if ("0.0.0.0".equals(bindIP)) {
+                serverSocket = new ServerSocket(PORT); // listen on all interfaces
+            } else {
+                serverSocket = new ServerSocket(PORT, 50, InetAddress.getByName(bindIP));
             }
-        }, 30000, 30000);
 
-        try (ServerSocket listener = new ServerSocket(PORT)) {
+            // Try to show a helpful address for other machines
+            String localIp;
+            try {
+                localIp = InetAddress.getLocalHost().getHostAddress();
+            } catch (Exception e) {
+                localIp = bindIP.equals("0.0.0.0") ? "<all interfaces>" : bindIP;
+            }
+
+            System.out.println("Server started on " + localIp + ":" + PORT + " (bound to " + bindIP + ")");
+            System.out.println("Waiting for players to connect...");
+
+            // Start earthquake timer (every 30 seconds)
+            Timer earthquakeTimer = new Timer();
+            earthquakeTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    triggerEarthquake();
+                }
+            }, 30000, 30000);
+
             while (true) {
-                pool.execute(new ClientHandler(listener.accept()));
+                Socket client = serverSocket.accept();
+                System.out.println("Player connected from " + client.getInetAddress().getHostAddress());
+                pool.execute(new ClientHandler(client));
             }
+        } catch (BindException be) {
+            System.err.println("Port " + PORT + " is already in use or binding failed: " + be.getMessage());
+            be.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
